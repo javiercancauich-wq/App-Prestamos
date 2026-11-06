@@ -1,0 +1,14 @@
+# Python / FastAPI
+backend/venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub/
+.pub-cache/
