@@ -456,7 +456,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 }
 
-class LoanDetailScreen extends StatelessWidget {
+/*class LoanDetailScreen extends StatelessWidget {
   final dynamic loanData;
 
   const LoanDetailScreen({super.key, required this.loanData});
@@ -562,6 +562,8 @@ class LoanDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+
+      
       // --- Botón inferior fijo para realizar pagos ---
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
@@ -584,8 +586,12 @@ class LoanDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ),
+        
       ),
+      
     );
+
+    
   }
 
   Widget _buildDetailRow(IconData icon, String title, String value) {
@@ -607,7 +613,10 @@ class LoanDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+
+      
     );
+    
   }
 
   // --- Método para mostrar las opciones de pago en un BottomSheet ---
@@ -798,8 +807,467 @@ class LoanDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
+    Future<List<dynamic>> _fetchPayments(int loanId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.0.33:8000/loans/$loanId/payments'),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print("Error al cargar pagos: $e");
+    }
+    return [];
+  }
+}
+*/
+
+
+class LoanDetailScreen extends StatelessWidget {
+  final dynamic loanData;
+
+  const LoanDetailScreen({super.key, required this.loanData});
+
+  Future<List<dynamic>> _fetchPayments(int loanId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.0.33:8000/loans/$loanId/payments'),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print("Error al cargar pagos: $e");
+    }
+    return [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: Text(
+          'Detalle del Crédito #${loanData['id']}',
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF1E293B),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ListView(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B).withOpacity(0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.receipt_long_outlined, size: 36, color: Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'SALDO PENDIENTE ACTUAL',
+                    style: TextStyle(color: Colors.grey, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '\$${loanData['balance_remaining']}',
+                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.amber.shade200),
+                    ),
+                    child: Text(
+                      'Estado: ${(loanData['status'] ?? 'active').toUpperCase()}',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber.shade800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+            const Text(
+              'Información del Crédito',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200, width: 1),
+              ),
+              child: Column(
+                children: [
+                  _buildDetailRow(Icons.attach_money, 'Monto Solicitado', '\$${loanData['amount']}'),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  _buildDetailRow(Icons.calendar_today_outlined, 'Fecha de Solicitud', loanData['requested_date'] ?? 'No registrada'),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  _buildDetailRow(Icons.event_available_outlined, 'Fecha de Entrega', loanData['disbursement_date'] ?? 'No registrada'),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  _buildDetailRow(Icons.play_circle_outline, 'Inicio de Pagos', loanData['start_payment_date'] ?? 'No registrada'),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  _buildDetailRow(Icons.schedule_outlined, 'Plazos Acordados', loanData['term'] ?? 'No especificado'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: Color(0xFF1E293B)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: () => _showPaymentHistory(context, loanData['id']),
+                child: const Text('Historial', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E293B),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                onPressed: () => _showPaymentMethods(context),
+                child: const Text('Realizar Pago', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey.shade600, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentMethods(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Seleccione método de pago',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Elija cómo desea abonar a su saldo pendiente.',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              _buildPaymentOptionTile(
+                context,
+                icon: Icons.storefront_outlined,
+                title: 'Efectivo en OXXO Pay',
+                subtitle: 'Genera un código de barras para pagar en tienda',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showOxxoCodeDialog(context);
+                },
+              ),
+              const Divider(height: 20),
+              _buildPaymentOptionTile(
+                context,
+                icon: Icons.account_balance_outlined,
+                title: 'Transferencia Bancaria (SPEI)',
+                subtitle: 'CLABE interbancaria única',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSpeiDialog(context);
+                },
+              ),
+              const Divider(height: 20),
+              _buildPaymentOptionTile(
+                context,
+                icon: Icons.credit_card_outlined,
+                title: 'Tarjeta de Débito o Crédito',
+                subtitle: 'Pago inmediato en línea',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCardPaymentDialog(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentOptionTile(BuildContext context, {required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: const Color(0xFF1E293B)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentHistory(BuildContext context, int loanId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Historial de Abonos y Pagos',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 15),
+              Expanded(
+                child: FutureBuilder<List<dynamic>>(
+                  future: _fetchPayments(loanId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: Color(0xFF1E293B)));
+                    }
+                    final payments = snapshot.data ?? [];
+                    if (payments.isEmpty) {
+                      return const Center(
+                        child: Text('No hay pagos registrados para este crédito.', style: TextStyle(color: Colors.grey)),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: payments.length,
+                      itemBuilder: (context, index) {
+                        final p = payments[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Método: ${p['payment_method'].toUpperCase()}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  const SizedBox(height: 2),
+                                  Text(p['created_at'] ?? '', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('\$${p['amount']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    p['payment_status'] == 'approved' ? 'Aprobado' : 'En Revisión',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: p['payment_status'] == 'approved' ? Colors.green : Colors.orange.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOxxoCodeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Referencia OXXO Pay'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Presenta este código en cualquier tienda OXXO del país para realizar tu pago:'),
+            const SizedBox(height: 15),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
+              child: const Text('9823 4910 2384 1928', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 2)),
+            ),
+            const SizedBox(height: 15),
+            Text('Monto a pagar: \$${loanData['balance_remaining']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))
+        ],
+      ),
+    );
+  }
+
+  void _showSpeiDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Transferencia SPEI'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Realiza una transferencia interbancaria con los siguientes datos:'),
+            const SizedBox(height: 10),
+            const Text('Banco: STP / Fintech'),
+            const Text('CLABE: 646180157000000012'),
+            const SizedBox(height: 10),
+            Text('Monto exacto: \$${loanData['balance_remaining']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendido'))
+        ],
+      ),
+    );
+  }
+
+  void _showCardPaymentDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Pago con Tarjeta'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Corregido: Sin 'const' en TextField
+            TextField(decoration: const InputDecoration(labelText: 'Número de Tarjeta', hintText: '4532 •••• •••• ••••')),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: TextField(decoration: const InputDecoration(labelText: 'MM/AA'))),
+                const SizedBox(width: 10),
+                Expanded(child: TextField(decoration: const InputDecoration(labelText: 'CVV'))),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B)),
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('¡Pago procesado con éxito! (Simulación)')),
+              );
+            },
+            child: const Text('Pagar Ahora', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /*class DashboardScreen extends StatelessWidget {
   final String role;

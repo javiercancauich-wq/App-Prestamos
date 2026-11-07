@@ -28,3 +28,16 @@ class Loan(Base):
     term = Column(String, nullable=True)
 
     owner = relationship("User", back_populates="loans")
+    payments = relationship("Payment", back_populates="loan", cascade="all, delete-orphan")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    loan_id = Column(Integer, ForeignKey("loans.id"))
+    amount = Column(Float, nullable=False)
+    payment_method = Column(String, nullable=False)
+    payment_status = Column(String, default="pending")
+    created_at = Column(String, nullable=False)
+
+    loan = relationship("Loan", back_populates="payments")

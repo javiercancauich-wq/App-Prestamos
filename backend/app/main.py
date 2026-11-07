@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from .database import engine, get_db
 from . import models
 from typing import Optional
+from datetime import datetime
 
 # Crea las tablas en la base de datos si no existen
 models.Base.metadata.create_all(bind=engine)
@@ -135,3 +136,51 @@ def get_loans(db: Session = Depends(get_db)):
 def get_user_loans(user_id: int, db: Session = Depends(get_db)):
     loans = db.query(models.Loan).filter(models.Loan.user_id == user_id).all()
     return loans
+
+
+#Agregamos los esquemas pydantic y los endpoint para guardar y consultar los pagos de un prestamo
+
+class PaymentCreate(BaseModel):
+    loan_id: int
+    amount: float
+    payment_method: str
+    create_at: Optional[str] = None
+
+class PaymentResponse(BaseModel):
+    id: int
+    loan_id: int
+    amount: float
+    payment_method: str
+    payment_status: str
+    created_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Endpoint para crear un pago
+@app.post("/payments/", response_model=PaymentResponse)
+def create_payment(payment: PaymentCreate, db: Session = Depends(get_db)):
+    # Verificar si el préstamo existe
+    loan = db.query(models.Loan).filter(models.Loan.id == payment.loan_id).first()
+    if not loan:
+        raise HTTPException(status_code=404, detail="Préstamo no encontrado")
+
+    # Crear un nuevo pago
+    new_payment = models.Payment(
+        loan_id=payment.loan_id,
+        amount=payment.amount,
+        payment_method=payment.payment_method,
+        payment_status="pending",  # Estado por defecto
+        created_at=payment.create_at if payment.create_at else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
+    db.add(new_payment)
+    db.commit()
+    db.refresh(new_payment)
+    return new_payment
+
+# Endpoint para obtener todos los pagos de un préstamo específico
+@app.get("/payments/loans/{loan_id}", response_model=List[PaymentResponse])
+def get_loan_payments(loan_id: int, db: Session = Depends(get_db)):
+    payments = db.query(models.Payment).filter(models.Payment.loan_id == loan_id).all()
+    return payments
